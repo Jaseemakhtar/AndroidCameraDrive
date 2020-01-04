@@ -1,0 +1,4 @@
+<resources>
+    <string name="app_name">Infilect Camera</string>
+    <string name="btn_capture">Capture</string>
+</resources>
