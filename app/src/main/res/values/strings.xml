@@ -1,4 +1,7 @@
 <resources>
     <string name="app_name">Infilect Camera</string>
     <string name="btn_capture">Capture</string>
+    <string name="switchcam">switchCam</string>
+    <string name="gallery">gallery</string>
+    <string name="sync">Sync</string>
 </resources>

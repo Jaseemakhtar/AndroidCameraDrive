@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="vertical"
+    android:layout_margin="1dp"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+
+    <ImageView
+        app:layout_constraintEnd_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintDimensionRatio="1:1"
+        android:adjustViewBounds="true"
+        android:scaleType="centerCrop"
+        android:src="@mipmap/ic_launcher_round"
+        android:id="@+id/imageView"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"/>
+
+    <ImageView
+        app:layout_constraintBottom_toBottomOf="@+id/imageView"
+        android:src="@drawable/gradient_bottom"
+        android:layout_width="match_parent"
+        app:layout_constraintDimensionRatio="5:1"
+        android:layout_height="0dp"/>
+
+    <ImageView
+        android:id="@+id/imageNotUpload"
+        android:src="@drawable/ic_cloud_upload"
+        app:layout_constraintBottom_toBottomOf="@+id/imageView"
+        app:layout_constraintEnd_toEndOf="@id/imageView"
+        android:layout_margin="4dp"
+        android:layout_width="30dp"
+        android:layout_height="30dp"/>
+
+    <ImageView
+        android:id="@+id/imageUpload"
+        android:src="@drawable/ic_cloud_done"
+        app:layout_constraintBottom_toBottomOf="@+id/imageView"
+        app:layout_constraintEnd_toEndOf="@id/imageView"
+        android:layout_margin="4dp"
+        android:layout_width="30dp"
+        android:layout_height="30dp"/>
+
+
+</androidx.constraintlayout.widget.ConstraintLayout>

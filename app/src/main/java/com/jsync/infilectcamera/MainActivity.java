@@ -20,11 +20,9 @@ import android.hardware.camera2.CaptureFailure;
 import android.hardware.camera2.CaptureRequest;
 import android.hardware.camera2.TotalCaptureResult;
 import android.hardware.camera2.params.StreamConfigurationMap;
-import android.icu.text.UnicodeSetSpanner;
 import android.media.Image;
 import android.media.ImageReader;
 import android.media.MediaScannerConnection;
-import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
@@ -33,15 +31,15 @@ import android.util.Log;
 import android.util.Size;
 import android.util.SparseIntArray;
 import android.view.Surface;
-import android.view.SurfaceView;
 import android.view.TextureView;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.Toast;
 
+import com.jsync.infilectcamera.imageGallery.GalleryActivity;
+
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
@@ -57,6 +55,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private TextureView cameraView;
     private Button btnCapture;
     private ImageView btnGallery;
+    private ImageView btnSwitchCamera;
     private CameraDevice cameraDevice;
     private String[] cameraIds;
     private String cameraId;
@@ -161,10 +160,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         cameraView = findViewById(R.id.textureView);
         btnCapture = findViewById(R.id.btnCapture);
         btnGallery = findViewById(R.id.btnGallery);
+        btnSwitchCamera = findViewById(R.id.btnSwitchCamera);
 
         cameraView.setSurfaceTextureListener(surfaceTextureListener);
         btnCapture.setOnClickListener(MainActivity.this);
         btnGallery.setOnClickListener(MainActivity.this);
+        btnSwitchCamera.setOnClickListener(MainActivity.this);
     }
 
     @Override
@@ -176,6 +177,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
             case R.id.btnGallery:
                 openImageGallery();
+                break;
+
+            case R.id.btnSwitchCamera:
+                Toast.makeText(MainActivity.this, "Will add this feature soon!", Toast.LENGTH_SHORT).show();
                 break;
         }
     }
@@ -320,7 +325,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 @Override
                 public void onCaptureCompleted(CameraCaptureSession session, CaptureRequest request, TotalCaptureResult result) {
                     super.onCaptureCompleted(session, request, result);
-                    Toast.makeText(MainActivity.this, "Saved: " + file, Toast.LENGTH_LONG).show();
+                    Toast.makeText(MainActivity.this, "Saved: " + file, Toast.LENGTH_SHORT).show();
                     //sendBroadcast(new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE, Uri.fromFile(file)));
                     MediaScannerConnection.scanFile(MainActivity.this, new String[]{file.getAbsolutePath()}, null, null);
                     try {
