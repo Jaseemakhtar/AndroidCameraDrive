@@ -37,6 +37,7 @@ import android.view.SurfaceView;
 import android.view.TextureView;
 import android.view.View;
 import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.Toast;
 
 import java.io.File;
@@ -55,6 +56,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     private TextureView cameraView;
     private Button btnCapture;
+    private ImageView btnGallery;
     private CameraDevice cameraDevice;
     private String[] cameraIds;
     private String cameraId;
@@ -69,6 +71,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private final int REQUEST_STORAGE_PERMISSION = 345;
 
     private static final SparseIntArray ORIENTATIONS = new SparseIntArray();
+    public static final File infilectDirectory = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES + "/InfilectPics") ;
 
     //
     // Surface Texture Listener
@@ -157,10 +160,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         cameraView = findViewById(R.id.textureView);
         btnCapture = findViewById(R.id.btnCapture);
+        btnGallery = findViewById(R.id.btnGallery);
 
         cameraView.setSurfaceTextureListener(surfaceTextureListener);
         btnCapture.setOnClickListener(MainActivity.this);
-
+        btnGallery.setOnClickListener(MainActivity.this);
     }
 
     @Override
@@ -169,7 +173,16 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             case R.id.btnCapture:
                 saveImage();
                 break;
+
+            case R.id.btnGallery:
+                openImageGallery();
+                break;
         }
+    }
+
+    private void openImageGallery() {
+        Intent gallery = new Intent(MainActivity.this, GalleryActivity.class);
+        startActivity(gallery);
     }
 
     private void openCamera() throws CameraAccessException {
@@ -265,11 +278,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             String timeStamp = new SimpleDateFormat("MM-dd-yyyy_HH_mm_ss").format(new Date());
             String imageFileName = timeStamp + ".jpg";
 
-            File directory = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES + "/InfilectPics") ;
-            if(!directory.exists()){
-                directory.mkdirs();
+
+            if(!infilectDirectory.exists()){
+                infilectDirectory.mkdirs();
             }
-            final File file = new File(directory, imageFileName);
+            final File file = new File(infilectDirectory, imageFileName);
 
             ImageReader.OnImageAvailableListener readerListener = new ImageReader.OnImageAvailableListener() {
                 @Override
@@ -375,6 +388,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         if(requestCode == REQUEST_CAMERA_PERMISSION){
             if(grantResults[0] == PackageManager.PERMISSION_DENIED){
                 Toast.makeText(MainActivity.this, "Camera Permission is required to use this app", Toast.LENGTH_SHORT).show();
