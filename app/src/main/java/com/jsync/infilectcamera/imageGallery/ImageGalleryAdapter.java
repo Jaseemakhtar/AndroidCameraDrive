@@ -38,7 +38,10 @@ public class ImageGalleryAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
         if(file.exists()) {
             Bitmap bitmap = BitmapFactory.decodeFile(file.getAbsolutePath());
             ((ImageGalleryViewHolder) holder).imageView.setImageBitmap(bitmap);
-            ((ImageGalleryViewHolder) holder).imgUpload.setVisibility(View.GONE);
+            if(model.getFileId() != null)
+                ((ImageGalleryViewHolder) holder).imgNotUpload.setVisibility(View.GONE);
+            else
+                ((ImageGalleryViewHolder) holder).imgUpload.setVisibility(View.GONE);
         }
     }
 

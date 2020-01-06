@@ -5,6 +5,10 @@ public class ImageGalleryModel {
     private String fileName;
     private String filePath;
 
+    public ImageGalleryModel(){
+
+    }
+
     public ImageGalleryModel(String fileId, String fileName, String filePath) {
         this.fileId = fileId;
         this.fileName = fileName;
