@@ -1,4 +1,4 @@
-package com.jsync.infilectcamera;
+package com.jsync.infilectcamera.imageGallery;
 
 import androidx.annotation.Nullable;
 

@@ -6,7 +6,6 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
@@ -28,10 +27,10 @@ import com.google.api.client.googleapis.extensions.android.gms.auth.GoogleAccoun
 import com.google.api.client.json.gson.GsonFactory;
 import com.google.api.services.drive.Drive;
 import com.google.api.services.drive.DriveScopes;
-import com.jsync.infilectcamera.DriveServiceHelper;
 import com.jsync.infilectcamera.R;
 
 import java.util.Collections;
+import java.util.List;
 
 public class GalleryActivity extends AppCompatActivity {
     private final String TAG = "GalleryActivity";
@@ -43,6 +42,8 @@ public class GalleryActivity extends AppCompatActivity {
 
     private ImageGalleryAdapter adapter;
     private DriveServiceHelper driveServiceHelper;
+    private ImageGalleryModel infilectFolder;
+    private List<ImageGalleryModel> infilectPics;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -60,7 +61,18 @@ public class GalleryActivity extends AppCompatActivity {
 
 
         setTitle("Infilect Gallery");
-        loadImage();
+        //loadImage();
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        checkSignIn();
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
     }
 
     private void showLoading(){
@@ -86,7 +98,7 @@ public class GalleryActivity extends AppCompatActivity {
 
 
     private void loadImage(){
-        ImageLoaderAsyncTask imageLoaderAsyncTask = new ImageLoaderAsyncTask(adapter);
+        ImageLoaderAsyncTask imageLoaderAsyncTask = new ImageLoaderAsyncTask(adapter, infilectPics);
         imageLoaderAsyncTask.execute();
         imageLoaderAsyncTask.setImageLoadListener(new ImageLoaderAsyncTask.ImageLoadListener() {
             @Override
@@ -109,10 +121,10 @@ public class GalleryActivity extends AppCompatActivity {
                                 Log.d(TAG, "Signed in as " + googleSignInAccount.getEmail());
 
                                 // Use the authenticated account to sign in to the Drive service.
-
                                 // The DriveServiceHelper encapsulates all REST API and SAF functionality.
                                 // Its instantiation is required before handling any onClick actions.
                                 driveServiceHelper = new DriveServiceHelper(getGoogleDriveService(googleSignInAccount));
+
                             }
                         })
                         .addOnFailureListener(new OnFailureListener() {
@@ -136,7 +148,6 @@ public class GalleryActivity extends AppCompatActivity {
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         if(item.getItemId() == R.id.btnSync){
-            checkSignIn();
             return true;
         }
 
@@ -144,7 +155,6 @@ public class GalleryActivity extends AppCompatActivity {
     }
 
     private void checkSignIn(){
-        Toast.makeText(GalleryActivity.this, "Syncing...", Toast.LENGTH_SHORT).show();
         GoogleSignInAccount account = GoogleSignIn.getLastSignedInAccount(getApplicationContext());
 
         if (account == null) {
@@ -153,6 +163,38 @@ public class GalleryActivity extends AppCompatActivity {
             //email.setText(account.getEmail());
             driveServiceHelper = new DriveServiceHelper(getGoogleDriveService(account));
         }
+    }
+
+    private void getFilesFromDrive(){
+        driveServiceHelper.createFolderIfNotExist("InfilectGallery").addOnSuccessListener(new OnSuccessListener<ImageGalleryModel>() {
+            @Override
+            public void onSuccess(ImageGalleryModel model) {
+                infilectFolder = model;
+
+                driveServiceHelper.queryFiles(infilectFolder.getFileId()).addOnSuccessListener(new OnSuccessListener<List<ImageGalleryModel>>() {
+                    @Override
+                    public void onSuccess(List<ImageGalleryModel> imageGalleryModels) {
+                        infilectPics = imageGalleryModels;
+
+                    }
+                }).addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        Toast.makeText(GalleryActivity.this, e.getMessage(), Toast.LENGTH_SHORT).show();
+                        Log.d(TAG, "Unable to query file from infilect root folder");
+                    }
+                });
+
+
+
+            }
+        }).addOnFailureListener(new OnFailureListener() {
+            @Override
+            public void onFailure(@NonNull Exception e) {
+                Toast.makeText(GalleryActivity.this, e.getMessage(), Toast.LENGTH_SHORT).show();
+                Log.d(TAG, "Unable to get infilect root folder from drive");
+            }
+        });
     }
 
 
@@ -169,7 +211,6 @@ public class GalleryActivity extends AppCompatActivity {
                 credential)
                 .setApplicationName("Infilect Camera")
                 .build();
-
     }
 
     @Override
