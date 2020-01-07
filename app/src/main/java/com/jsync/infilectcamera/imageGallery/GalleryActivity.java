@@ -124,6 +124,7 @@ public class GalleryActivity extends AppCompatActivity {
                                 // The DriveServiceHelper encapsulates all REST API and SAF functionality.
                                 // Its instantiation is required before handling any onClick actions.
                                 driveServiceHelper = new DriveServiceHelper(getGoogleDriveService(googleSignInAccount));
+                                getFilesFromDrive();
 
                             }
                         })
@@ -131,9 +132,11 @@ public class GalleryActivity extends AppCompatActivity {
                             @Override
                             public void onFailure(@NonNull Exception e) {
                                 Log.d(TAG, "Failed to SignIn");
+                                hideLoading();
                             }
                         });
             }else{
+                hideLoading();
                 Toast.makeText(GalleryActivity.this, "You need to give Drive permission in order to upload!", Toast.LENGTH_LONG).show();
             }
         }
@@ -155,13 +158,15 @@ public class GalleryActivity extends AppCompatActivity {
     }
 
     private void checkSignIn(){
+        showLoading();
         GoogleSignInAccount account = GoogleSignIn.getLastSignedInAccount(getApplicationContext());
 
         if (account == null) {
             signInUser();
         } else {
-            //email.setText(account.getEmail());
             driveServiceHelper = new DriveServiceHelper(getGoogleDriveService(account));
+            Log.d(TAG, "User signed in: " + account.getEmail());
+            getFilesFromDrive();
         }
     }
 
@@ -175,24 +180,24 @@ public class GalleryActivity extends AppCompatActivity {
                     @Override
                     public void onSuccess(List<ImageGalleryModel> imageGalleryModels) {
                         infilectPics = imageGalleryModels;
-
+                        Log.d(TAG, "Success in fetching files: ");
+                        loadImage();
                     }
                 }).addOnFailureListener(new OnFailureListener() {
                     @Override
                     public void onFailure(@NonNull Exception e) {
                         Toast.makeText(GalleryActivity.this, e.getMessage(), Toast.LENGTH_SHORT).show();
-                        Log.d(TAG, "Unable to query file from infilect root folder");
+                        Log.d(TAG, "Unable to query file from infilect root folder of Google Drive.");
+                        hideLoading();
                     }
                 });
-
-
-
             }
         }).addOnFailureListener(new OnFailureListener() {
             @Override
             public void onFailure(@NonNull Exception e) {
                 Toast.makeText(GalleryActivity.this, e.getMessage(), Toast.LENGTH_SHORT).show();
                 Log.d(TAG, "Unable to get infilect root folder from drive");
+                hideLoading();
             }
         });
     }
@@ -216,6 +221,6 @@ public class GalleryActivity extends AppCompatActivity {
     @Override
     public void onBackPressed() {
         super.onBackPressed();
-        finish();
+        //finish();
     }
 }
