@@ -6,9 +6,11 @@
 
 
 ###### Snapshots
-![Camera Screen](https://raw.githubusercontent.com/Jaseemakhtar/AndroidCameraDrive/master/snaps/camera_screen.png | width=300px)
-![Captured Image](https://raw.githubusercontent.com/Jaseemakhtar/AndroidCameraDrive/master/snaps/caputerd.jpg | width=300px)
-![Gallery 1](https://raw.githubusercontent.com/Jaseemakhtar/AndroidCameraDrive/master/snaps/gallery-1.png | width=300px)
-![Gallery 2](https://raw.githubusercontent.com/Jaseemakhtar/AndroidCameraDrive/master/snaps/gallery-2.png | width=300px)
-![Folder Created In Drive](https://raw.githubusercontent.com/Jaseemakhtar/AndroidCameraDrive/master/snaps/folderInDrive.png | width=300px)
-![Files Uploaded to Drive](https://raw.githubusercontent.com/Jaseemakhtar/AndroidCameraDrive/master/snaps/uploaded.png | width=300px)
+
+
+<img src="https://raw.githubusercontent.com/Jaseemakhtar/AndroidCameraDrive/master/snaps/camera_screen.png" alt="Camera Screen" width="320px">
+<img src="https://raw.githubusercontent.com/Jaseemakhtar/AndroidCameraDrive/master/snaps/caputerd.jpg" alt="Captured Image" width="320px">
+<img src="https://raw.githubusercontent.com/Jaseemakhtar/AndroidCameraDrive/master/snaps/gallery-1.png" alt="Gallery 1" width="320px">
+<img src="https://raw.githubusercontent.com/Jaseemakhtar/AndroidCameraDrive/master/snaps/gallery-2.png" alt="Gallery 2" width="320px">
+<img src="https://raw.githubusercontent.com/Jaseemakhtar/AndroidCameraDrive/master/snaps/folderInDrive.png" alt="Folder Created In Drive" width="320px">
+<img src="https://raw.githubusercontent.com/Jaseemakhtar/AndroidCameraDrive/master/snaps/uploaded.png" alt="Files Uploaded to Drive" width="320px">
