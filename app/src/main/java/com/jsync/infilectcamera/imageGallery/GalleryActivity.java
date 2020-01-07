@@ -81,7 +81,7 @@ public class GalleryActivity extends AppCompatActivity implements FileUploaderSe
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_gallery);
 
-        progressBar = findViewById(R.id.progressBar);
+        progressBar = findViewById(R.id.progress_horizontal);
         recyclerView = findViewById(R.id.recyclerView);
 
         localPics = new ArrayList<>();
@@ -110,13 +110,11 @@ public class GalleryActivity extends AppCompatActivity implements FileUploaderSe
     }
 
     private void showLoading(){
-        recyclerView.setVisibility(View.INVISIBLE);
         progressBar.setVisibility(View.VISIBLE);
     }
 
     private void hideLoading(){
-        recyclerView.setVisibility(View.VISIBLE);
-        progressBar.setVisibility(View.INVISIBLE);
+        progressBar.setVisibility(View.GONE);
     }
 
     private void signInUser(){
@@ -135,12 +133,12 @@ public class GalleryActivity extends AppCompatActivity implements FileUploaderSe
         imageLoaderAsyncTask.setImageLoadListener(new ImageLoaderAsyncTask.ImageLoadListener() {
             @Override
             public void onComplete(String msg) {
-                hideLoading();
                 Toast.makeText(GalleryActivity.this, msg, Toast.LENGTH_SHORT).show();
                 localPics = imageLoaderAsyncTask.getResultList();
                 adapter.removeAll();
                 adapter.addAll(localPics);
                 isReadyToSync = true;
+                hideLoading();
             }
         });
     }
@@ -197,6 +195,7 @@ public class GalleryActivity extends AppCompatActivity implements FileUploaderSe
     }
 
     private void syncImages() {
+        showLoading();
         service = new Intent(GalleryActivity.this, FileUploaderService.class);
         service.putExtra("files", (Serializable) localPics);
         service.putExtra("folderId", folderId);
@@ -266,16 +265,19 @@ public class GalleryActivity extends AppCompatActivity implements FileUploaderSe
     public void onComplete(String msg) {
         Toast.makeText(GalleryActivity.this, msg, Toast.LENGTH_SHORT).show();
         isReadyToSync = true;
+        hideLoading();
     }
 
     @Override
     public void onUpdate(ImageGalleryModel resultsModel) {
         Toast.makeText(GalleryActivity.this, resultsModel.getFileName() + " uploaded successfully!", Toast.LENGTH_SHORT).show();
+        adapter.update(resultsModel.getFileName(), resultsModel.getFileId());
     }
 
     @Override
     public void onError(String error, int errorCode) {
         Toast.makeText(GalleryActivity.this, error, Toast.LENGTH_SHORT).show();
         isReadyToSync = false;
+        hideLoading();
     }
 }

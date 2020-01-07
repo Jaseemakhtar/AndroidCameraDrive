@@ -50,6 +50,17 @@ public class ImageGalleryAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
         }
     }
 
+    public void update(String name, String id){
+        for(int i = 0; i < imageGalleryModels.size(); i++){
+            if(imageGalleryModels.get(i).getFileName().equals(name)) {
+                imageGalleryModels.get(i).setFileId(id);
+                notifyDataSetChanged();
+                break;
+            }
+        }
+
+    }
+
     public void add(ImageGalleryModel model){
         imageGalleryModels.add(model);
         notifyDataSetChanged();

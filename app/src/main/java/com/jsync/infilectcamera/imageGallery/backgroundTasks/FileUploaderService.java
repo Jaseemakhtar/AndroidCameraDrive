@@ -69,8 +69,9 @@ public class FileUploaderService extends Service implements Runnable, Handler.Ca
             for (int i = 0; i < files.size(); i++) {
                 ImageGalleryModel file = files.get(i);
                 if(file.getFileId() == null){
-                    driveServiceHelper.createFile2(new File(file.getFilePath()), folderId);
+                    String newFileId = driveServiceHelper.createFile2(new File(file.getFilePath()), folderId);
                     log(file.getFileName() + " uploaded successfully!");
+                    file.setFileId(newFileId);
                     sendMessage(UPDATE, file.getFileName() + " uploaded successfully!", 0, file);
                     count++;
                 }
