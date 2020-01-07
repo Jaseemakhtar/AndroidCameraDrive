@@ -1,7 +1,8 @@
-package com.jsync.infilectcamera.imageGallery;
+package com.jsync.infilectcamera.imageGallery.recyclerView;
 
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.net.Uri;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -10,6 +11,7 @@ import android.widget.ImageView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.bumptech.glide.Glide;
 import com.jsync.infilectcamera.R;
 
 import java.io.File;
@@ -35,9 +37,12 @@ public class ImageGalleryAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
         ImageGalleryModel model = imageGalleryModels.get(position);
 
         File file = new File(model.getFilePath());
+        Uri imageUri = Uri.fromFile(file);
+
         if(file.exists()) {
-            Bitmap bitmap = BitmapFactory.decodeFile(file.getAbsolutePath());
-            ((ImageGalleryViewHolder) holder).imageView.setImageBitmap(bitmap);
+            /*Bitmap bitmap = BitmapFactory.decodeFile(file.getAbsolutePath());
+            ((ImageGalleryViewHolder) holder).imageView.setImageBitmap(bitmap);*/
+            Glide.with(holder.itemView).load(imageUri).into(((ImageGalleryViewHolder) holder).imageView);
             if(model.getFileId() != null)
                 ((ImageGalleryViewHolder) holder).imgNotUpload.setVisibility(View.GONE);
             else
@@ -48,6 +53,17 @@ public class ImageGalleryAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
     public void add(ImageGalleryModel model){
         imageGalleryModels.add(model);
         notifyDataSetChanged();
+    }
+
+    public void addAll(List<ImageGalleryModel> imageGalleryModels){
+        this.imageGalleryModels = imageGalleryModels;
+        notifyDataSetChanged();
+    }
+
+    public void removeAll(){
+        if(imageGalleryModels.size() > 0){
+            imageGalleryModels.clear();
+        }
     }
 
     @Override

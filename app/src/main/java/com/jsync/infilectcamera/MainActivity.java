@@ -215,6 +215,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         Surface surface = new Surface(surfaceTexture);
 
         captureReqBuilder = cameraDevice.createCaptureRequest(cameraDevice.TEMPLATE_PREVIEW);
+        captureReqBuilder.set(CaptureRequest.JPEG_QUALITY, (byte) 60);
         captureReqBuilder.addTarget(surface);
         cameraDevice.createCaptureSession(Arrays.asList(surface), new CameraCaptureSession.StateCallback() {
             @Override
@@ -243,6 +244,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }
 
         captureReqBuilder.set(CaptureRequest.CONTROL_MODE, CameraMetadata.CONTROL_MODE_AUTO);
+        captureReqBuilder.set(CaptureRequest.JPEG_QUALITY, (byte) 60);
         cameraCaptureSession.setRepeatingRequest(captureReqBuilder.build(), null, backgroundHandler);
     }
 
@@ -346,6 +348,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 }
                 @Override
                 public void onConfigureFailed(CameraCaptureSession session) {
+
                 }
             }, backgroundHandler);
         } catch (CameraAccessException e) {

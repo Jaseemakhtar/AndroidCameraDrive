@@ -1,6 +1,8 @@
-package com.jsync.infilectcamera.imageGallery;
+package com.jsync.infilectcamera.imageGallery.recyclerView;
 
-public class ImageGalleryModel {
+import java.io.Serializable;
+
+public class ImageGalleryModel implements Serializable {
     private String fileId;
     private String fileName;
     private String filePath;

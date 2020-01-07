@@ -6,8 +6,11 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import android.content.ComponentName;
 import android.content.Intent;
+import android.content.ServiceConnection;
 import android.os.Bundle;
+import android.os.IBinder;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -28,12 +31,21 @@ import com.google.api.client.json.gson.GsonFactory;
 import com.google.api.services.drive.Drive;
 import com.google.api.services.drive.DriveScopes;
 import com.jsync.infilectcamera.R;
+import com.jsync.infilectcamera.imageGallery.backgroundTasks.FileUploaderService;
+import com.jsync.infilectcamera.imageGallery.backgroundTasks.GetFilesAsyncTask;
+import com.jsync.infilectcamera.imageGallery.backgroundTasks.ImageLoaderAsyncTask;
+import com.jsync.infilectcamera.imageGallery.recyclerView.ImageGalleryAdapter;
+import com.jsync.infilectcamera.imageGallery.recyclerView.ImageGalleryModel;
+import com.jsync.infilectcamera.imageGallery.utils.DriveServiceHelper;
 
+import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-public class GalleryActivity extends AppCompatActivity {
+public class GalleryActivity extends AppCompatActivity implements FileUploaderService.UploadListener {
     private final String TAG = "GalleryActivity";
+    public static final String DRIVE_INFILECT_FOLDER = "InfilectGallery";
     private ProgressBar progressBar;
     private RecyclerView recyclerView;
 
@@ -42,8 +54,27 @@ public class GalleryActivity extends AppCompatActivity {
 
     private ImageGalleryAdapter adapter;
     private DriveServiceHelper driveServiceHelper;
-    private ImageGalleryModel infilectFolder;
-    private List<ImageGalleryModel> infilectPics;
+
+    private List<ImageGalleryModel> drivePics;
+    private List<ImageGalleryModel> localPics;
+    private String folderId;
+
+    private FileUploaderService uploader;
+    private Intent service;
+    private boolean isBound;
+    private ServiceConnection connection = new ServiceConnection() {
+        @Override
+        public void onServiceConnected(ComponentName name, IBinder service) {
+            uploader = ((FileUploaderService.LocalBinder)service).getService();
+            uploader.setUploadListener(GalleryActivity.this);
+        }
+
+        @Override
+        public void onServiceDisconnected(ComponentName name) {
+            isBound = false;
+        }
+    };
+    private boolean isReadyToSync;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -53,15 +84,14 @@ public class GalleryActivity extends AppCompatActivity {
         progressBar = findViewById(R.id.progressBar);
         recyclerView = findViewById(R.id.recyclerView);
 
+        localPics = new ArrayList<>();
         adapter = new ImageGalleryAdapter();
 
         gridLayoutManager = new GridLayoutManager(GalleryActivity.this, 3);
         recyclerView.setLayoutManager(gridLayoutManager);
         recyclerView.setAdapter(adapter);
 
-
         setTitle("Infilect Gallery");
-        //loadImage();
     }
 
     @Override
@@ -73,6 +103,10 @@ public class GalleryActivity extends AppCompatActivity {
     @Override
     protected void onPause() {
         super.onPause();
+        if(isBound){
+            unbindService(connection);
+            isBound = false;
+        }
     }
 
     private void showLoading(){
@@ -95,16 +129,18 @@ public class GalleryActivity extends AppCompatActivity {
         startActivityForResult(signInClient.getSignInIntent(), REQUEST_SIGN_IN);
     }
 
-
-
     private void loadImage(){
-        ImageLoaderAsyncTask imageLoaderAsyncTask = new ImageLoaderAsyncTask(adapter, infilectPics);
+        final ImageLoaderAsyncTask imageLoaderAsyncTask = new ImageLoaderAsyncTask(drivePics);
         imageLoaderAsyncTask.execute();
         imageLoaderAsyncTask.setImageLoadListener(new ImageLoaderAsyncTask.ImageLoadListener() {
             @Override
             public void onComplete(String msg) {
                 hideLoading();
                 Toast.makeText(GalleryActivity.this, msg, Toast.LENGTH_SHORT).show();
+                localPics = imageLoaderAsyncTask.getResultList();
+                adapter.removeAll();
+                adapter.addAll(localPics);
+                isReadyToSync = true;
             }
         });
     }
@@ -119,13 +155,12 @@ public class GalleryActivity extends AppCompatActivity {
                             @Override
                             public void onSuccess(GoogleSignInAccount googleSignInAccount) {
                                 Log.d(TAG, "Signed in as " + googleSignInAccount.getEmail());
-
                                 // Use the authenticated account to sign in to the Drive service.
                                 // The DriveServiceHelper encapsulates all REST API and SAF functionality.
                                 // Its instantiation is required before handling any onClick actions.
-                                driveServiceHelper = new DriveServiceHelper(getGoogleDriveService(googleSignInAccount));
+                                driveServiceHelper = DriveServiceHelper.getInstance();
+                                driveServiceHelper.init(getGoogleDriveService(googleSignInAccount));
                                 getFilesFromDrive();
-
                             }
                         })
                         .addOnFailureListener(new OnFailureListener() {
@@ -151,10 +186,25 @@ public class GalleryActivity extends AppCompatActivity {
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         if(item.getItemId() == R.id.btnSync){
+            if(isReadyToSync)
+                syncImages();
+            else
+                Toast.makeText(GalleryActivity.this, "Try again!", Toast.LENGTH_SHORT).show();
             return true;
         }
 
         return false;
+    }
+
+    private void syncImages() {
+        service = new Intent(GalleryActivity.this, FileUploaderService.class);
+        service.putExtra("files", (Serializable) localPics);
+        service.putExtra("folderId", folderId);
+        startService(service);
+        bindService(service, connection, BIND_AUTO_CREATE);
+        isBound = true;
+        isReadyToSync = false;
+        Toast.makeText(this, "Starting to sync", Toast.LENGTH_SHORT).show();
     }
 
     private void checkSignIn(){
@@ -164,46 +214,34 @@ public class GalleryActivity extends AppCompatActivity {
         if (account == null) {
             signInUser();
         } else {
-            driveServiceHelper = new DriveServiceHelper(getGoogleDriveService(account));
+            driveServiceHelper = DriveServiceHelper.getInstance();
+            driveServiceHelper.init(getGoogleDriveService(account));
             Log.d(TAG, "User signed in: " + account.getEmail());
             getFilesFromDrive();
         }
     }
 
     private void getFilesFromDrive(){
-        driveServiceHelper.createFolderIfNotExist("InfilectGallery").addOnSuccessListener(new OnSuccessListener<ImageGalleryModel>() {
+        final GetFilesAsyncTask getFilesAsyncTask = new GetFilesAsyncTask(driveServiceHelper);
+        getFilesAsyncTask.setResultListener(new GetFilesAsyncTask.ResultListener() {
             @Override
-            public void onSuccess(ImageGalleryModel model) {
-                infilectFolder = model;
-
-                driveServiceHelper.queryFiles(infilectFolder.getFileId()).addOnSuccessListener(new OnSuccessListener<List<ImageGalleryModel>>() {
-                    @Override
-                    public void onSuccess(List<ImageGalleryModel> imageGalleryModels) {
-                        infilectPics = imageGalleryModels;
-                        Log.d(TAG, "Success in fetching files: ");
-                        loadImage();
-                    }
-                }).addOnFailureListener(new OnFailureListener() {
-                    @Override
-                    public void onFailure(@NonNull Exception e) {
-                        Toast.makeText(GalleryActivity.this, e.getMessage(), Toast.LENGTH_SHORT).show();
-                        Log.d(TAG, "Unable to query file from infilect root folder of Google Drive.");
-                        hideLoading();
-                    }
-                });
+            public void onSuccess(List<ImageGalleryModel> drivePics) {
+                GalleryActivity.this.drivePics = drivePics;
+                folderId = getFilesAsyncTask.getFolderId();
+                hideLoading();
+                loadImage();
+                Log.d(TAG, "Success in fetching files: ");
             }
-        }).addOnFailureListener(new OnFailureListener() {
+
             @Override
-            public void onFailure(@NonNull Exception e) {
-                Toast.makeText(GalleryActivity.this, e.getMessage(), Toast.LENGTH_SHORT).show();
-                Log.d(TAG, "Unable to get infilect root folder from drive");
+            public void onFail(String msg) {
+                Toast.makeText(GalleryActivity.this, msg, Toast.LENGTH_SHORT).show();
+                Log.d(TAG, "Unable to query file from infilect root folder of Google Drive.");
                 hideLoading();
             }
         });
+        getFilesAsyncTask.execute();
     }
-
-
-
 
     public Drive getGoogleDriveService(GoogleSignInAccount account) {
         GoogleAccountCredential credential =
@@ -221,6 +259,23 @@ public class GalleryActivity extends AppCompatActivity {
     @Override
     public void onBackPressed() {
         super.onBackPressed();
-        //finish();
+        finish();
+    }
+
+    @Override
+    public void onComplete(String msg) {
+        Toast.makeText(GalleryActivity.this, msg, Toast.LENGTH_SHORT).show();
+        isReadyToSync = true;
+    }
+
+    @Override
+    public void onUpdate(ImageGalleryModel resultsModel) {
+        Toast.makeText(GalleryActivity.this, resultsModel.getFileName() + " uploaded successfully!", Toast.LENGTH_SHORT).show();
+    }
+
+    @Override
+    public void onError(String error, int errorCode) {
+        Toast.makeText(GalleryActivity.this, error, Toast.LENGTH_SHORT).show();
+        isReadyToSync = false;
     }
 }

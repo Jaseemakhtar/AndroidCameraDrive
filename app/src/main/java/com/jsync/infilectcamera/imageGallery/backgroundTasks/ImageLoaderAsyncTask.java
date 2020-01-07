@@ -1,20 +1,22 @@
-package com.jsync.infilectcamera.imageGallery;
+package com.jsync.infilectcamera.imageGallery.backgroundTasks;
 
 import android.os.AsyncTask;
 
 import com.jsync.infilectcamera.MainActivity;
+import com.jsync.infilectcamera.imageGallery.recyclerView.ImageGalleryModel;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.List;
 
 public class ImageLoaderAsyncTask extends AsyncTask<Void, Void, String> {
-    private ImageGalleryAdapter adapter;
     private List<ImageGalleryModel> infilectPics;
+    private List<ImageGalleryModel> resultList;
     private ImageLoadListener imageLoadListener;
 
-    public ImageLoaderAsyncTask(ImageGalleryAdapter adapter, List<ImageGalleryModel> infilectPics){
-        this.adapter = adapter;
+    public ImageLoaderAsyncTask(List<ImageGalleryModel> infilectPics){
         this.infilectPics = infilectPics;
+        resultList = new ArrayList<>();
     }
 
     public void setImageLoadListener(ImageLoadListener imageLoadListener){
@@ -36,11 +38,15 @@ public class ImageLoaderAsyncTask extends AsyncTask<Void, Void, String> {
                         model.setFileId(driveFile.getFileId());
                 }
 
-                adapter.add(model);
+                resultList.add(model);
             }
         }
 
-        return adapter.getItemCount() + " images loaded";
+        return resultList.size() + " images loaded";
+    }
+
+    public List<ImageGalleryModel> getResultList(){
+        return resultList;
     }
 
     @Override
@@ -51,7 +57,7 @@ public class ImageLoaderAsyncTask extends AsyncTask<Void, Void, String> {
     }
 
     public interface ImageLoadListener{
-        public void onComplete(String msg);
+         void onComplete(String msg);
     }
 
 
