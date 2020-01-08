@@ -18,7 +18,18 @@
             </intent-filter>
         </activity>
         <service android:name=".imageGallery.backgroundTasks.FileUploaderService" android:exported="false" android:enabled="true" />
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.provider"
+            android:exported="false"
+            android:grantUriPermissions="true" >
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/provider_paths" />
+        </provider>
+
     </application>
+
 
     <uses-feature android:name="android.hardware.camera2.full" />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
